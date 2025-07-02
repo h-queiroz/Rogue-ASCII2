@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
+#include <algorithm> // for std::remove
 
 bool Game::getIsFinished() { return m_isFinished; };
 
@@ -43,9 +44,8 @@ void Game::loadLevel(int level)
 
     loadingFile.close();
 
-    drawLevel();
-    drawLog();
-    drawControls();
+    // Temp
+    createMonster();
 };
 
 void Game::promptPlayer()
@@ -55,25 +55,44 @@ void Game::promptPlayer()
     while((action = getchar()) != '\n') {
         switch(action){
             case 'w':{
-                if(m_level[m_player.getPositionY() - 1][m_player.getPositionX()] != '#' && ((m_player.getPositionY() - 1) > 0))
-                    m_player.setPositionY(m_player.getPositionY() - 1);
+                // if(m_level[m_player.getPositionY() - 1][m_player.getPositionX()] == '.' && ((m_player.getPositionY() - 1) > 0))
+                //     m_player.setPositionY(m_player.getPositionY() - 1);
+                // break;
+                if((m_player.getPositionY() - 1) > 0){
+                    if(m_level[m_player.getPositionY() - 1][m_player.getPositionX()] == '.'){
+                        m_player.setPositionY(m_player.getPositionY() - 1);
+                        break;
+                    }
+
+                    if(m_level[m_player.getPositionY() - 1][m_player.getPositionX()] == 'G'){
+                        Monster* monster = findMonster(m_player.getPositionX(), m_player.getPositionY() - 1);
+                        bool isAlive = monster->takeDamage(m_player.getAttackStat()); // takeDamage is not actually decreasing the monster life.
+                        m_log.push_back(m_player.getName()+" attacked Green goblin. Now Green goblin only have " + std::to_string(monster->getHealth()) + " of life.");
+
+                        if(!isAlive){
+                            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](Monster m){ return (&m == monster);} ), m_monsters.end()); // Not working
+                            m_log.push_back("Green goblin died.");
+                        }
+                        break;
+                    }
+                }
                 break;
             }
 
             case 'd':{
-                if(m_level[m_player.getPositionY()][m_player.getPositionX() + 1] != '#' && ((m_player.getPositionX() + 1) < 23))
+                if(m_level[m_player.getPositionY()][m_player.getPositionX() + 1] == '.' && ((m_player.getPositionX() + 1) < 23))
                     m_player.setPositionX(m_player.getPositionX() + 1);
                 break;
             }
 
             case 's':{
-                if(m_level[m_player.getPositionY() + 1][m_player.getPositionX()] != '#' && ((m_player.getPositionY() + 1) < 6))
+                if(m_level[m_player.getPositionY() + 1][m_player.getPositionX()] == '.' && ((m_player.getPositionY() + 1) < 6))
                     m_player.setPositionY(m_player.getPositionY() + 1);
                 break;
             }
 
             case 'a': {
-                if(m_level[m_player.getPositionY()][m_player.getPositionX() - 1] != '#' && ((m_player.getPositionX() - 1) > 0))
+                if(m_level[m_player.getPositionY()][m_player.getPositionX() - 1] == '.' && ((m_player.getPositionX() - 1) > 0))
                     m_player.setPositionX(m_player.getPositionX() - 1);
                 break;
             }
@@ -83,10 +102,15 @@ void Game::promptPlayer()
                 break;
             }
 
-            // case 'c': {
-            //     m_log.clear();
-            //     break;
-            // }
+            case 'c': { // Create Monster in random position
+                createMonster();
+                break;
+            }
+
+            case 'p': { // Prints how many monsters exist and their positions
+                m_log.push_back("Num of monsters total: " + std::to_string(m_monsters.size()));
+                break;
+            }
 
             default:
                 if(action != '\n')
@@ -101,6 +125,8 @@ void Game::drawLevel()
     system("clear");
 
     m_level[m_player.getPositionY()][m_player.getPositionX()] = '@';
+    for(Monster monster : m_monsters)
+        m_level[monster.getPosY()][monster.getPosX()] = monster.getName();
 
     for(int i = 0; i < 7; i++) {
         for(int j = 0; j < 24; j++) {
@@ -132,4 +158,36 @@ void Game::drawControls()
               << "s - Move down\n"
               << "a - Move left\n"
               << "q - Quit\n";
+};
+
+void Game::createMonster()
+{
+    Monster monster;
+
+    // Don't create monster in actual position if is already occupied
+    while(true){
+        if(m_level[monster.getPosY()][monster.getPosX()] == '#' ||
+           m_level[monster.getPosY()][monster.getPosX()] == '@' ||
+           m_level[monster.getPosY()][monster.getPosX()] == 'G')
+            monster.generateNewPositions();
+        else
+            break;
+    }
+
+    m_monsters.push_back(monster);
+
+    m_log.push_back("Monster Created");
+};
+
+Monster* Game::findMonster(int posX, int posY)
+{
+    Monster* foundMonster;
+    for(Monster monster : m_monsters){
+        if(monster.getPosX() == posX && monster.getPosY() == posY){
+            foundMonster = &monster;
+            return foundMonster;
+        }
+    }
+
+    return nullptr;
 };

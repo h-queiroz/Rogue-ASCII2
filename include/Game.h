@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Player.h"
+#include "Monster.h"
 
 class Game {
 private:
@@ -11,6 +12,7 @@ private:
     Player m_player;
     char m_level[7][24];
     std::vector<std::string> m_log;
+    std::vector<Monster> m_monsters;
 
 public:
     bool getIsFinished();
@@ -21,6 +23,8 @@ public:
     void drawLevel();
     void drawLog();
     void drawControls();
+    void createMonster();
+    Monster* findMonster(int posX, int posY);
 };
 
 #endif // GAME_H
