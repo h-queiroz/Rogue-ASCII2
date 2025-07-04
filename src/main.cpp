@@ -15,9 +15,17 @@ int main()
         game.drawLog();
         game.drawControls();
         game.promptPlayer();
+        game.moveMonsters();
     }
 
-    std::cout << "\nThanks for playing\n";
+    if(game.getPlayerHealth() <= 0){
+        game.drawLevel();
+        game.drawLog();
+        game.drawControls();
+        std::cout << "\nGAME OVER!!!\n";
+    }
+
+    std::cout << "\nThanks for playing.\n";
 
     // Saving Game Feature
     // std::ofstream savingFile;

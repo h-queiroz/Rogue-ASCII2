@@ -5,6 +5,7 @@ executable('rogueGame',
             'src/Player.cpp',
             'src/Game.cpp',
             'src/Monster.cpp',
+            'src/Entity.cpp',
            ],
            include_directories : include_directories('include')
 )

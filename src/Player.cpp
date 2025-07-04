@@ -1,10 +1,9 @@
 #include "../include/Player.h"
 
-std::string Player::getName() { return m_name; };
-int Player::getPositionX() { return m_posX; };
-int Player::getPositionY() { return m_posY; };
-int Player::getAttackStat() { return m_attackStat; };
-
-void Player::setName(std::string name) { m_name = name; };
-void Player::setPositionX(int posX) { m_posX = posX; };
-void Player::setPositionY(int posY) { m_posY = posY; };
+Player::Player(){
+    m_charRep = '@';
+    m_posX = 2;
+    m_posY = 2;
+    m_attackStat = 5;
+    m_health = 7;
+}

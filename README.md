@@ -62,7 +62,7 @@ Player will spawn in a default position in level1.txt. Each level is gonna have 
 - @ (Player)
 - \# (Wall)
 - . (Empty Walkable Space)
-- g (Green goblin)
+- G (Green goblin)
 - B (Boss)
 - % (Staircase to the next level)
 

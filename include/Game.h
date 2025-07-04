@@ -7,6 +7,8 @@
 #include "Monster.h"
 
 class Game {
+
+
 private:
     bool m_isFinished = false;
     Player m_player;
@@ -15,7 +17,15 @@ private:
     std::vector<Monster> m_monsters;
 
 public:
+    enum class Direction{
+        UP,
+        RIGHT,
+        DOWN,
+        LEFT
+    };
+
     bool getIsFinished();
+    int getPlayerHealth();
 
     void promptPlayer();
     void startMenu();
@@ -25,6 +35,8 @@ public:
     void drawControls();
     void createMonster();
     Monster* findMonster(int posX, int posY);
+    void move(Entity* entity, Game::Direction direction);
+    void moveMonsters();
 };
 
 #endif // GAME_H
