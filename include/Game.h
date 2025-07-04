@@ -34,9 +34,11 @@ public:
     void drawLog();
     void drawControls();
     void createMonster();
+    void createMonster(Monster::MonsterTypes monsterType);
     Monster* findMonster(int posX, int posY);
     void move(Entity* entity, Game::Direction direction);
     void moveMonsters();
+    void battle(Entity* attackingEntity, Entity* targetEntity);
 };
 
 #endif // GAME_H

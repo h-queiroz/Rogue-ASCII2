@@ -48,9 +48,12 @@ void Game::loadLevel(int level)
 
     loadingFile.close();
 
-    // Temporário
-    // Criando primeiro monstro
-    createMonster();
+    // Temporary
+    // Creating first Goblin monster;
+    createMonster(Monster::MonsterTypes::Goblin);
+
+    // Setting player in the level
+    m_level[m_player.getPosY()][m_player.getPosX()] = m_player.getCharRep();
 };
 
 void Game::promptPlayer()
@@ -59,43 +62,24 @@ void Game::promptPlayer()
     char action;
     while((action = getchar()) != '\n') {
         switch(action){
-            case 'w':{
-                move(&m_player, Direction::UP);
-                break;
-            }
+            case 'w':{ move(&m_player, Direction::UP); break; }
 
-            case 'd':{
-                move(&m_player, Direction::RIGHT);
-                break;
-            }
+            case 'd':{ move(&m_player, Direction::RIGHT); break; }
 
-            case 's':{
-                move(&m_player, Direction::DOWN);
-                break;
-            }
+            case 's':{ move(&m_player, Direction::DOWN); break; }
 
-            case 'a': {
-                move(&m_player, Direction::LEFT);
-                break;
-            }
+            case 'a': { move(&m_player, Direction::LEFT); break; }
 
-            case 'c': { // Create Monster in random position
-                createMonster();
-                break;
-            }
+            // Create random Monster in a random position
+            case 'c': { createMonster(); break; }
 
-            case 'p': { // Prints how many monsters exist and their positions
-                m_log.push_back("Num of monsters total: " + std::to_string(m_monsters.size()));
-                break;
-            }
+            // Prints how many monsters exist and their positions
+            case 'p': { m_log.push_back("Num of monsters total: " + std::to_string(m_monsters.size())); break; }
 
-            case '.': break; // Do nothing. This is on purpose
+            // Quit the game
+            case 'q': { m_isFinished = true; break; }
 
-            case 'q': {
-                m_isFinished = true;
-                break;
-            }
-
+            // Do nothing with every key, with exception of the Enter key
             default:
                 if(action != '\n')
                     m_log.push_back("Invalid Movement");
@@ -107,11 +91,6 @@ void Game::promptPlayer()
 void Game::drawLevel()
 {
     system("clear");
-
-    // Setting Player and Monsters on the level
-    m_level[m_player.getPosY()][m_player.getPosX()] = m_player.getCharRep();
-    for(Monster monster : m_monsters)
-        m_level[monster.getPosY()][monster.getPosX()] = monster.getCharRep();
 
     // Drawing level
     for(int i = 0; i < 7; i++) {
@@ -141,27 +120,29 @@ void Game::drawControls()
               << "a - Move left\n"
               << "c - Create Monster a random position\n"
               << "p - Print in log total amount of monsters alive\n"
-              << ". - Do nothing\n"
               << "q - Quit\n";
 };
 
-void Game::createMonster()
+// If not monsterType provided, selects it random
+void Game::createMonster() {
+    std::mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution<> dist(0, 3);
+
+    createMonster(static_cast<Monster::MonsterTypes>(dist(eng)));
+};
+
+void Game::createMonster(Monster::MonsterTypes monsterType)
 {
-    Monster monster;
+    Monster monster(monsterType);
 
     // Don't create monster in actual position if is already occupied
-    while(true){
-        if(m_level[monster.getPosY()][monster.getPosX()] == '#' ||
-           m_level[monster.getPosY()][monster.getPosX()] == m_player.getCharRep() ||
-           m_level[monster.getPosY()][monster.getPosX()] == 'G')
+    while(m_level[monster.getPosY()][monster.getPosX()] != '.')
             monster.generateNewPositions();
-        else
-            break;
-    }
 
     m_monsters.push_back(monster);
+    m_level[monster.getPosY()][monster.getPosX()] = monster.getCharRep();
 
-    m_log.push_back("Monster Created");
+    m_log.push_back(monster.getName() + " created");
 };
 
 Monster* Game::findMonster(int posX, int posY)
@@ -216,28 +197,13 @@ void Game::move(Entity* entity, Direction direction)
 
     // If not empty space, it might be combat.
     if (typeid(*entity) == typeid(Player)) { // Player moving
-        if (destinationTile == 'G') { // Attacking a monster
+        if (destinationTile == 'S'|| destinationTile == 'G' || destinationTile == 'O' || destinationTile == 'D') { // Attacking a monster
             Monster* monster = findMonster(nextX, nextY);
-            m_player.attack(monster);
-            m_log.push_back(m_player.getName() + " attacked " + monster->getName());
-
-            if (monster->getHealth() <= 0) { // Monster Died
-                m_level[monster->getPosY()][monster->getPosX()] = '.';
-                m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
-                m_log.push_back(monster->getName() + " died.");
-            }
+            battle(&m_player, monster);
         }
-    } else { // Monster moving
-        if (destinationTile == m_player.getCharRep()) { // Attacking the player
-            entity->attack(&m_player);
-            m_log.push_back(entity->getName() + " attacked " + m_player.getName());
-
-            if (m_player.getHealth() <= 0) { // Player Died. Game Over
-                m_log.push_back(m_player.getName() + " died.");
-                m_isFinished = true;
-            }
-        }
-    }
+    }else// Monster moving
+        if (destinationTile == m_player.getCharRep()) // Attacking the player
+            battle(entity, &m_player);
 };
 
 // Moves each monster in a random direction
@@ -246,11 +212,38 @@ void Game::moveMonsters()
     std::mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> dist(0, 3);
 
-    Direction randomDirection;
     for(Monster& monster : m_monsters){
-        randomDirection = static_cast<Direction>(dist(eng));
-        move(&monster, randomDirection);
+        // If the player is around the monster fight it, otherwise move randomly
+        if(m_level[monster.getPosY() - 1][monster.getPosX()] == m_player.getCharRep() ||
+            m_level[monster.getPosY() + 1][monster.getPosX()] == m_player.getCharRep() ||
+            m_level[monster.getPosY()][monster.getPosX() - 1] == m_player.getCharRep() ||
+            m_level[monster.getPosY()][monster.getPosX() + 1] == m_player.getCharRep())
+            battle(&monster, &m_player);
+        else
+            move(&monster, static_cast<Direction>(dist(eng)));
+
         if(m_isFinished)
             break;
+    }
+};
+
+void Game::battle(Entity* attackingEntity, Entity* targetEntity)
+{
+    attackingEntity->attack(targetEntity);
+    m_log.push_back(attackingEntity->getName() + " attacked " + targetEntity->getName());
+
+    if (targetEntity->getHealth() <= 0) {
+        m_log.push_back(targetEntity->getName() + " died.");
+
+        // If target that died was a Monster
+        if (typeid(*targetEntity) == typeid(Monster)) {
+            m_level[targetEntity->getPosY()][targetEntity->getPosX()] = '.';
+            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&targetEntity](const Monster& m){ return (&m == targetEntity);} ), m_monsters.end());
+            createMonster();
+        }
+
+        // If target that died was a Player
+        if (typeid(*targetEntity) == typeid(Player))
+            m_isFinished = true;
     }
 };

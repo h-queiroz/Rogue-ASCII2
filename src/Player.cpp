@@ -5,5 +5,5 @@ Player::Player(){
     m_posX = 2;
     m_posY = 2;
     m_attackStat = 5;
-    m_health = 7;
+    m_health = 20;
 }

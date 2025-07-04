@@ -3,12 +3,53 @@
 
 #include "../include/Monster.h"
 
-Monster::Monster()
+// Monster::Monster()
+// {
+//     m_name = "Green goblin";
+//     m_charRep = 'G';
+//     m_attackStat = 2;
+//     m_health = 15;
+//
+//     generateNewPositions();
+// };
+
+Monster::Monster(MonsterTypes monsterType)
 {
-    m_name = "Green goblin";
-    m_charRep = 'G';
-    m_attackStat = 2;
-    m_health = 15;
+    m_monsterType = monsterType;
+    switch(monsterType){
+        case MonsterTypes::Snake: {
+            m_name = "Snake";
+            m_charRep = 'S';
+            m_attackStat = 2;
+            m_health = 8;
+            break;
+        }
+
+        case MonsterTypes::Goblin: {
+            m_name = "Green goblin";
+            m_charRep = 'G';
+            m_attackStat = 3;
+            m_health = 15;
+            break;
+        }
+
+        case MonsterTypes::Orc: {
+            m_name = "Orc";
+            m_charRep = 'O';
+            m_attackStat = 7;
+            m_health = 25;
+            break;
+        }
+
+        case MonsterTypes::Dragon: {
+            m_name = "Dragon";
+            m_charRep = 'D';
+            m_attackStat = 12;
+            m_health = 70;
+            break;
+        }
+    };
+
     generateNewPositions();
 };
 

@@ -21,7 +21,6 @@ int main()
     if(game.getPlayerHealth() <= 0){
         game.drawLevel();
         game.drawLog();
-        game.drawControls();
         std::cout << "\nGAME OVER!!!\n";
     }
 

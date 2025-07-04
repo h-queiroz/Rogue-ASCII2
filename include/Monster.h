@@ -5,8 +5,20 @@
 
 class Monster : public Entity {
 public:
+    enum class MonsterTypes {
+        Snake,
+        Goblin,
+        Orc,
+        Dragon,
+    };
+
+private:
+    MonsterTypes m_monsterType;
+
+public:
+    // Monster();
     // Constructor
-    Monster();
+    Monster(MonsterTypes monsterType);
 
     void generateNewPositions();
 };
