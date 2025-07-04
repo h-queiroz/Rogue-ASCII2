@@ -175,157 +175,67 @@ Monster* Game::findMonster(int posX, int posY)
 
 void Game::move(Entity* entity, Direction direction)
 {
+    int nextX = entity->getPosX();
+    int nextY = entity->getPosY();
+
     switch(direction){
-        case Direction::UP:{
-            if((entity->getPosY() - 1) > 0){
-                if(m_level[entity->getPosY() - 1][entity->getPosX()] == '.'){
-                    m_level[entity->getPosY()][entity->getPosX()] = '.';
-                    entity->setPositionY(entity->getPosY() - 1);
-                    m_level[entity->getPosY()][entity->getPosX()] = entity->getCharRep();
-                    break;
-                }
+        case Direction::UP:    nextY--; break;
+        case Direction::RIGHT: nextX++; break;
+        case Direction::DOWN:  nextY++; break;
+        case Direction::LEFT:  nextX--; break;
+    }
 
-                if(typeid(*entity) == typeid(Player)){ // If entity that is moving is the player
-                    if(m_level[entity->getPosY() - 1][entity->getPosX()] == 'G'){ // Is attacking monster
-                        Monster* monster = findMonster(m_player.getPosX(), m_player.getPosY() - 1);
-                        m_player.attack(monster);
-                        m_log.push_back(m_player.getName()+" attacked "+monster->getName());
+    // Boundary checks from original code
+    bool boundaryOk = false;
+    switch(direction){
+        case Direction::UP:    boundaryOk = (nextY > 0); break;
+        case Direction::RIGHT: boundaryOk = (nextX < 23); break;
+        case Direction::DOWN:  boundaryOk = (nextY < 23); break;
+        case Direction::LEFT:  boundaryOk = (nextX > 0); break;
+    }
 
-                        if(monster->getHealth() <= 0) { // Monster Died
-                            m_level[monster->getPosY()][monster->getPosX()] = '.';
-                            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
-                            m_log.push_back(monster->getName() + " died.");
-                        }
-                        break;
-                    }
-                } else { // If entity that is moving is a monster
-                    if(m_level[entity->getPosY() - 1][entity->getPosX()] == m_player.getCharRep()){ // Is attacking player
-                        entity->attack(&m_player);
-                        m_log.push_back(entity->getName()+" attacked "+m_player.getName());
+    if (!boundaryOk) {
+        return;
+    }
 
-                        if(m_player.getHealth() <= 0) { // Player Died. Game Over
-                            m_log.push_back(m_player.getName() + " died.");
-                            m_isFinished = true;
-                        }
-                    }
-                    break;
-                }
+    // How my approach for boundary check would be
+    // if(direction == Direction::UP && nextY < 0) return;
+    // if(direction == Direction::RIGHT && nextX > 23) return;
+    // if(direction == Direction::DOWN && nextY > 23) return;
+    // if(direction == Direction::LEFT && nextX < 0) return;
+
+    char destinationTile = m_level[nextY][nextX];
+
+    if (destinationTile == '.') { // Empty space
+        m_level[entity->getPosY()][entity->getPosX()] = '.';
+        entity->setPositionX(nextX);
+        entity->setPositionY(nextY);
+        m_level[nextY][nextX] = entity->getCharRep();
+        return;
+    }
+
+    // If not empty space, it might be combat.
+    if (typeid(*entity) == typeid(Player)) { // Player moving
+        if (destinationTile == 'G') { // Attacking a monster
+            Monster* monster = findMonster(nextX, nextY);
+            m_player.attack(monster);
+            m_log.push_back(m_player.getName() + " attacked " + monster->getName());
+
+            if (monster->getHealth() <= 0) { // Monster Died
+                m_level[monster->getPosY()][monster->getPosX()] = '.';
+                m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
+                m_log.push_back(monster->getName() + " died.");
             }
-            break;
-        };
-
-        case Direction::RIGHT:{
-            if((entity->getPosX() + 1) < 23){
-                if(m_level[entity->getPosY()][entity->getPosX() + 1] == '.'){
-                    m_level[entity->getPosY()][entity->getPosX()] = '.';
-                    entity->setPositionX(entity->getPosX() + 1);
-                    m_level[entity->getPosY()][entity->getPosX()] = entity->getCharRep();
-                    break;
-                }
-
-                if(typeid(*entity) == typeid(Player)){ // If entity that is moving is the player
-                    if(m_level[entity->getPosY()][entity->getPosX() + 1] == 'G'){ // Is attacking monster
-                        Monster* monster = findMonster(m_player.getPosX() + 1, m_player.getPosY());
-                        m_player.attack(monster);
-                        m_log.push_back(m_player.getName()+" attacked "+monster->getName());
-
-                        if(monster->getHealth() <= 0) { // Monster Died
-                            m_level[monster->getPosY()][monster->getPosX()] = '.';
-                            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
-                            m_log.push_back(monster->getName() + " died.");
-                        }
-                        break;
-                    }
-                } else { // If entity that is moving is a monster
-                    if(m_level[entity->getPosY()][entity->getPosX() + 1] == m_player.getCharRep()){ // Is attacking player
-                        entity->attack(&m_player);
-                        m_log.push_back(entity->getName()+" attacked "+m_player.getName());
-
-                        if(m_player.getHealth() <= 0) { // Player Died. Game Over
-                            m_log.push_back(m_player.getName() + " died.");
-                            m_isFinished = true;
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         }
+    } else { // Monster moving
+        if (destinationTile == m_player.getCharRep()) { // Attacking the player
+            entity->attack(&m_player);
+            m_log.push_back(entity->getName() + " attacked " + m_player.getName());
 
-        case Direction::DOWN:{
-            if((entity->getPosY() + 1) < 23){
-                if(m_level[entity->getPosY() + 1][entity->getPosX()] == '.'){
-                    m_level[entity->getPosY()][entity->getPosX()] = '.';
-                    entity->setPositionY(entity->getPosY() + 1);
-                    m_level[entity->getPosY()][entity->getPosX()] = entity->getCharRep();
-                    break;
-                }
-
-                if(typeid(*entity) == typeid(Player)){ // If entity that is moving is the player
-                    if(m_level[entity->getPosY() + 1][entity->getPosX()] == 'G'){ // Is attacking monster
-                        Monster* monster = findMonster(m_player.getPosX(), m_player.getPosY() + 1);
-                        m_player.attack(monster);
-                        m_log.push_back(m_player.getName()+" attacked "+monster->getName());
-
-                        if(monster->getHealth() <= 0) { // Monster Died
-                            m_level[monster->getPosY()][monster->getPosX()] = '.';
-                            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
-                            m_log.push_back(monster->getName() + " died.");
-                        }
-                        break;
-                    }
-                } else { // If entity that is moving is a monster
-                    if(m_level[entity->getPosY() + 1][entity->getPosX()] == m_player.getCharRep()){ // Is attacking player
-                        entity->attack(&m_player);
-                        m_log.push_back(entity->getName()+" attacked "+m_player.getName());
-
-                        if(m_player.getHealth() <= 0) { // Player Died. Game Over
-                            m_log.push_back(m_player.getName() + " died.");
-                            m_isFinished = true;
-                        }
-                    }
-                    break;
-                }
+            if (m_player.getHealth() <= 0) { // Player Died. Game Over
+                m_log.push_back(m_player.getName() + " died.");
+                m_isFinished = true;
             }
-            break;
-        };
-
-        case Direction::LEFT:{
-            if((entity->getPosX() - 1) > 0){
-                if(m_level[entity->getPosY()][entity->getPosX() - 1] == '.'){
-                    m_level[entity->getPosY()][entity->getPosX()] = '.';
-                    entity->setPositionX(entity->getPosX() - 1);
-                    m_level[entity->getPosY()][entity->getPosX()] = entity->getCharRep();
-                    break;
-                }
-
-                if(typeid(*entity) == typeid(Player)){ // If entity that is moving is the player
-                    if(m_level[entity->getPosY()][entity->getPosX() - 1] == 'G'){ // Is attacking monster
-                        Monster* monster = findMonster(m_player.getPosX() - 1, m_player.getPosY());
-                        m_player.attack(monster);
-                        m_log.push_back(m_player.getName()+" attacked "+monster->getName());
-
-                        if(monster->getHealth() <= 0) { // Monster Died
-                            m_level[monster->getPosY()][monster->getPosX()] = '.';
-                            m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&monster](const Monster& m){ return (&m == monster);} ), m_monsters.end());
-                            m_log.push_back(monster->getName() + " died.");
-                        }
-                        break;
-                    }
-                } else { // If entity that is moving is a monster
-                    if(m_level[entity->getPosY()][entity->getPosX() - 1] == m_player.getCharRep()){ // Is attacking player
-                        entity->attack(&m_player);
-                        m_log.push_back(entity->getName()+" attacked "+m_player.getName());
-
-                        if(m_player.getHealth() <= 0) { // Player Died. Game Over
-                            m_log.push_back(m_player.getName() + " died.");
-                            m_isFinished = true;
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         }
     }
 };
