@@ -33,6 +33,7 @@ public:
     void drawLevel();
     void drawLog();
     void drawControls();
+    void drawPlayerStatus();
     void createMonster();
     void createMonster(Monster::MonsterTypes monsterType);
     Monster* findMonster(int posX, int posY);

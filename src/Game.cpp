@@ -123,6 +123,14 @@ void Game::drawControls()
               << "q - Quit\n";
 };
 
+void Game::drawPlayerStatus()
+{
+    std::cout << "\nHP: " + std::to_string(m_player.getHealth())
+            << "\tStrength: " + std::to_string(m_player.getAttackStat())
+            << '\n';
+
+};
+
 // If not monsterType provided, selects it random
 void Game::createMonster() {
     std::mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -142,6 +150,9 @@ void Game::createMonster(Monster::MonsterTypes monsterType)
     m_monsters.push_back(monster);
     m_level[monster.getPosY()][monster.getPosX()] = monster.getCharRep();
 
+    // **********
+    // DEBUG ONLY
+    // **********
     m_log.push_back(monster.getName() + " created");
 };
 
@@ -171,7 +182,7 @@ void Game::move(Entity* entity, Direction direction)
     switch(direction){
         case Direction::UP:    boundaryOk = (nextY > 0); break;
         case Direction::RIGHT: boundaryOk = (nextX < 23); break;
-        case Direction::DOWN:  boundaryOk = (nextY < 23); break;
+        case Direction::DOWN:  boundaryOk = (nextY < 6); break;
         case Direction::LEFT:  boundaryOk = (nextX > 0); break;
     }
 
@@ -182,7 +193,7 @@ void Game::move(Entity* entity, Direction direction)
     // How my approach for boundary check would be
     // if(direction == Direction::UP && nextY < 0) return;
     // if(direction == Direction::RIGHT && nextX > 23) return;
-    // if(direction == Direction::DOWN && nextY > 23) return;
+    // if(direction == Direction::DOWN && nextY > 6) return;
     // if(direction == Direction::LEFT && nextX < 0) return;
 
     char destinationTile = m_level[nextY][nextX];
@@ -213,7 +224,7 @@ void Game::moveMonsters()
     std::uniform_int_distribution<> dist(0, 3);
 
     for(Monster& monster : m_monsters){
-        // If the player is around the monster fight it, otherwise move randomly
+        // If the player is around the monster, fight it, otherwise move randomly
         if(m_level[monster.getPosY() - 1][monster.getPosX()] == m_player.getCharRep() ||
             m_level[monster.getPosY() + 1][monster.getPosX()] == m_player.getCharRep() ||
             m_level[monster.getPosY()][monster.getPosX() - 1] == m_player.getCharRep() ||

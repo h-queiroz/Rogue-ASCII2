@@ -12,6 +12,7 @@ int main()
 
     while(!game.getIsFinished()){
         game.drawLevel();
+        game.drawPlayerStatus();
         game.drawLog();
         game.drawControls();
         game.promptPlayer();

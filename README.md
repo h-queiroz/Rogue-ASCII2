@@ -11,11 +11,21 @@ In this game challenge, you will be making an ASCII Roguelike RPG game! Here's s
 
 1. Load the ASCII levels from a level file! Like level1.txt, level2.txt -- Done
 
-2. Allow player movement using <wasd>. (getch() can be used).
+2. Allow player movement using <wasd>. (getch() can be used). -- Done
 
-3. Have some enemies that randomly move around, and allow the player to attack them!
+3. Have some enemies that randomly move around, and allow the player to attack them! -- Done
 
-4. Make sure the player can't walk through walls!
+4. Make sure the player can't walk through walls! -- Done
+
+### What to do Next:
+
+- Create different types of monsters -- Done
+
+- Make it so that when the level is loaded, it creates respective monster Objects for their positions and insert them in the m_monsters vector
+
+- Create save feature
+
+- Display Player current status -- Done
 
 ##### Optional Objectives:
 
