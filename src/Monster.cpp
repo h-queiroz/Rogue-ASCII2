@@ -3,16 +3,6 @@
 
 #include "../include/Monster.h"
 
-// Monster::Monster()
-// {
-//     m_name = "Green goblin";
-//     m_charRep = 'G';
-//     m_attackStat = 2;
-//     m_health = 15;
-//
-//     generateNewPositions();
-// };
-
 Monster::Monster(MonsterTypes monsterType)
 {
     m_monsterType = monsterType;
@@ -20,8 +10,9 @@ Monster::Monster(MonsterTypes monsterType)
         case MonsterTypes::Snake: {
             m_name = "Snake";
             m_charRep = 'S';
-            m_attackStat = 2;
-            m_health = 8;
+            m_attackStat = 1;
+            m_health = 5;
+            m_xp = 2;
             break;
         }
 
@@ -29,29 +20,34 @@ Monster::Monster(MonsterTypes monsterType)
             m_name = "Green goblin";
             m_charRep = 'G';
             m_attackStat = 3;
-            m_health = 15;
+            m_health = 10;
+            m_xp = 4;
             break;
         }
 
         case MonsterTypes::Orc: {
             m_name = "Orc";
             m_charRep = 'O';
-            m_attackStat = 7;
-            m_health = 25;
+            m_attackStat = 5;
+            m_health = 20;
+            m_xp = 6;
             break;
         }
 
         case MonsterTypes::Dragon: {
             m_name = "Dragon";
             m_charRep = 'D';
-            m_attackStat = 12;
-            m_health = 70;
+            m_attackStat = 10;
+            m_health = 45;
+            m_xp = 25;
             break;
         }
     };
 
     generateNewPositions();
 };
+
+int Monster::getXp() { return m_xp; };
 
 void Monster::generateNewPositions()
 {

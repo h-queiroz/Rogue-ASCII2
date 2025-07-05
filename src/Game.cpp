@@ -125,7 +125,10 @@ void Game::drawControls()
 
 void Game::drawPlayerStatus()
 {
-    std::cout << "\nHP: " + std::to_string(m_player.getHealth())
+    std::cout
+            << "\nLevel: " + std::to_string(m_player.getLevel())
+            << "\tXP: " + std::to_string(m_player.getCurrentXp()) + " (" + std::to_string(m_player.getXpToLevelUp()) + ")"
+            << "\tHP: " + std::to_string(m_player.getHealth())
             << "\tStrength: " + std::to_string(m_player.getAttackStat())
             << '\n';
 
@@ -144,8 +147,16 @@ void Game::createMonster(Monster::MonsterTypes monsterType)
     Monster monster(monsterType);
 
     // Don't create monster in actual position if is already occupied
-    while(m_level[monster.getPosY()][monster.getPosX()] != '.')
-            monster.generateNewPositions();
+    while(m_level[monster.getPosY()][monster.getPosX()] != '.'){
+        monster.generateNewPositions();
+        // Or if generated Position is adjacent to Player position
+        // It's not working, no idea why
+        // if(m_level[monster.getPosY() - 1][monster.getPosX()] == m_player.getCharRep() ||
+        //     m_level[monster.getPosY() + 1][monster.getPosX()] == m_player.getCharRep() ||
+        //     m_level[monster.getPosY()][monster.getPosX() - 1] == m_player.getCharRep() ||
+        //     m_level[monster.getPosY()][monster.getPosX() + 1] == m_player.getCharRep())
+        //     continue;
+    }
 
     m_monsters.push_back(monster);
     m_level[monster.getPosY()][monster.getPosX()] = monster.getCharRep();
@@ -248,6 +259,9 @@ void Game::battle(Entity* attackingEntity, Entity* targetEntity)
 
         // If target that died was a Monster
         if (typeid(*targetEntity) == typeid(Monster)) {
+            bool hasLeveledUp = m_player.gainXp(static_cast<Monster*>(targetEntity)->getXp());
+            if(hasLeveledUp)
+                m_log.push_back("Level Up!");
             m_level[targetEntity->getPosY()][targetEntity->getPosX()] = '.';
             m_monsters.erase(std::remove_if(m_monsters.begin(), m_monsters.end(), [&targetEntity](const Monster& m){ return (&m == targetEntity);} ), m_monsters.end());
             createMonster();

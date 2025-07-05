@@ -14,11 +14,13 @@ public:
 
 private:
     MonsterTypes m_monsterType;
+    int m_xp; // The amount of xp the Player receives when the Monster dies
 
 public:
-    // Monster();
     // Constructor
     Monster(MonsterTypes monsterType);
+
+    int getXp();
 
     void generateNewPositions();
 };
