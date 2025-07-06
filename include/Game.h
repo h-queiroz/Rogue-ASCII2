@@ -30,6 +30,7 @@ public:
     void promptPlayer();
     void startMenu();
     void loadLevel(int level);
+    void saveLevel();
     void drawLevel();
     void drawLog();
     void drawControls();

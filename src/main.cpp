@@ -27,15 +27,5 @@ int main()
 
     std::cout << "\nThanks for playing.\n";
 
-    // Saving Game Feature
-    // std::ofstream savingFile;
-    // savingFile.open("savingFile.txt");
-    // if(savingFile.fail()){
-    //     perror("savingFile");
-    //     return 1;
-    // }
-    // savingFile << "This is \none\nbig Test.";
-    // savingFile.close();
-
     return 0;
 };

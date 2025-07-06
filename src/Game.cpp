@@ -29,7 +29,7 @@ void Game::loadLevel(int level)
     system("clear");
 
     std::ifstream loadingFile;
-    loadingFile.open("level"+ std::to_string(level) +".txt");
+    loadingFile.open("levels/level"+ std::to_string(level) +".txt");
     if(loadingFile.fail()){ // If fails to load file for some reason
         perror("level1.txt");
         std::exit(1);
@@ -56,6 +56,27 @@ void Game::loadLevel(int level)
     m_level[m_player.getPosY()][m_player.getPosX()] = m_player.getCharRep();
 };
 
+// Saving Game Feature
+void Game::saveLevel()
+{
+    std::ofstream savingFile;
+    savingFile.open("levels/level1_saved.txt");
+    if(savingFile.fail()){
+        perror("savingFile");
+        std::exit(1);
+    }
+
+    for(int i = 0; i < 7; i++){
+        for(int j = 0; j < 24; j++)
+            savingFile << m_level[i][j];
+        savingFile << '\n';
+    }
+
+    m_log.push_back("Game saved in level1_saved.txt");
+    // savingFile << "This is \none\nbig Test.";
+    savingFile.close();
+}
+
 void Game::promptPlayer()
 {
     std::cout << "\nWhat's your next action: ";
@@ -78,6 +99,9 @@ void Game::promptPlayer()
 
             // Quit the game
             case 'q': { m_isFinished = true; break; }
+            
+            // Saves the game
+            case 'S': { saveLevel(); break;}
 
             // Do nothing with every key, with exception of the Enter key
             default:
@@ -120,6 +144,7 @@ void Game::drawControls()
               << "a - Move left\n"
               << "c - Create Monster a random position\n"
               << "p - Print in log total amount of monsters alive\n"
+              << "S - Saves the game\n"
               << "q - Quit\n";
 };
 
@@ -154,8 +179,10 @@ void Game::createMonster(Monster::MonsterTypes monsterType)
         // if(m_level[monster.getPosY() - 1][monster.getPosX()] == m_player.getCharRep() ||
         //     m_level[monster.getPosY() + 1][monster.getPosX()] == m_player.getCharRep() ||
         //     m_level[monster.getPosY()][monster.getPosX() - 1] == m_player.getCharRep() ||
-        //     m_level[monster.getPosY()][monster.getPosX() + 1] == m_player.getCharRep())
-        //     continue;
+        //     m_level[monster.getPosY()][monster.getPosX() + 1] == m_player.getCharRep()){
+        //     monster.setPositionX(0);
+        //     monster.setPositionY(0);
+        // }
     }
 
     m_monsters.push_back(monster);
